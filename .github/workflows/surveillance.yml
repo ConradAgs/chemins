@@ -1,0 +1,40 @@
+name: Surveillance page Bénin
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # toutes les 10 minutes
+  workflow_dispatch:          # lancement manuel pour tester
+
+permissions:
+  contents: write
+
+concurrency:
+  group: surveillance
+  cancel-in-progress: false
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Vérifier la page
+        run: python surveillance.py
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_DEST: ${{ secrets.EMAIL_DEST }}
+
+      - name: Sauvegarder l'état
+        run: |
+          git config user.name "bot-surveillance"
+          git config user.email "bot@users.noreply.github.com"
+          git add etat_page.json
+          git diff --cached --quiet || (git commit -m "Mise à jour de l'état" && git push)
