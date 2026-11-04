@@ -2,7 +2,7 @@ name: Surveillance page Bénin
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # toutes les 10 minutes
+        - cron: "7,17,27,37,47,57 * * * *"   # toutes les 10 minutes
   workflow_dispatch:          # lancement manuel pour tester
 
 permissions:
