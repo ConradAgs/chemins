@@ -32,21 +32,28 @@ def extraire_contenu(html):
 
 def notifier(diff):
     if NTFY_TOPIC:
-        requests.post(
-            f"https://ntfy.sh/{NTFY_TOPIC}",
-            data=f"La page a change : {URL}\n\n{diff[:1500]}".encode("utf-8"),
-            headers={"Title": "Billets Paris-Cotonou", "Priority": "urgent",
-                     "Tags": "airplane", "Click": URL},
-            timeout=20,
-        )
+        try:
+            requests.post(
+                f"https://ntfy.sh/{NTFY_TOPIC}",
+                data=f"La page a change : {URL}\n\n{diff[:1500]}".encode("utf-8"),
+                headers={"Title": "Billets Paris-Cotonou", "Priority": "urgent",
+                         "Tags": "airplane", "Click": URL},
+                timeout=20,
+            )
+        except Exception as e:
+            print(f"Échec ntfy : {e}")
     if SMTP_USER and SMTP_PASS and EMAIL_DEST:
-        msg = EmailMessage()
-        msg["Subject"] = "La page voyage.benin.bj a changé !"
-        msg["From"], msg["To"] = SMTP_USER, EMAIL_DEST
-        msg.set_content(f"{URL}\n\n{diff}")
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-            s.login(SMTP_USER, SMTP_PASS)
-            s.send_message(msg)
+        try:
+            msg = EmailMessage()
+            msg["Subject"] = "La page voyage.benin.bj a changé !"
+            msg["From"], msg["To"] = SMTP_USER, EMAIL_DEST
+            msg.set_content(f"{URL}\n\n{diff}")
+            with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as s:
+                s.starttls()
+                s.login(SMTP_USER, SMTP_PASS)
+                s.send_message(msg)
+        except Exception as e:
+            print(f"Échec e-mail : {e}")
 
 
 def main():
