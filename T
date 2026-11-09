@@ -1,0 +1,38 @@
+T08_REPARTITION_RATINGS =
+VAR _def =
+    DATATABLE (
+        "Rating", STRING,
+        "Ordre_Rating", INTEGER,
+        {
+            { "AAA", 1 }, { "AA", 2 }, { "A", 3 }, { "BBB", 4 },
+            { "BB", 5 }, { "B", 6 }, { "CCC", 7 }
+        }
+    )
+RETURN
+    SELECTCOLUMNS (
+        CROSSJOIN ( ALL_KPI, _def ),
+        "Nom ptf", ALL_KPI[Nom ptf],
+        "Type_Entite", ALL_KPI[Type_Entite],
+        "Date_Maj", ALL_KPI[Date_Maj],
+        "Mois", ALL_KPI[Mois],
+        "Periode",
+            VAR _p = FORMAT ( ALL_KPI[Date_Maj], "mmmm yyyy", "fr-FR" )
+            RETURN UPPER ( LEFT ( _p, 1 ) ) & MID ( _p, 2, LEN ( _p ) ),
+        "Periode_Tri", YEAR ( ALL_KPI[Date_Maj] ) * 100 + MONTH ( ALL_KPI[Date_Maj] ),
+        "Rating", [Rating],
+        "Ordre_Rating", [Ordre_Rating],
+        "Poids",
+            COALESCE (
+                SWITCH (
+                    [Ordre_Rating],
+                    1, ALL_KPI[Rating_AAA],
+                    2, ALL_KPI[Rating_AA],
+                    3, ALL_KPI[Rating_A],
+                    4, ALL_KPI[Rating_BBB],
+                    5, ALL_KPI[Rating_BB],
+                    6, ALL_KPI[Rating_B],
+                    7, ALL_KPI[Rating_CCC]
+                ),
+                0
+            )
+    )
